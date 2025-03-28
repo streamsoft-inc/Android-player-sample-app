@@ -18,11 +18,15 @@ import androidx.media3.exoplayer.hls.HlsMediaSource
 import androidx.media3.exoplayer.source.MediaSource
 import androidx.media3.exoplayer.source.ProgressiveMediaSource
 import androidx.media3.ui.PlayerView
-import com.example.playersampleapp.viewModel.PlayerViewModel
 import com.example.playersampleapp.R
+import com.example.playersampleapp.viewModel.PlayerViewModel
 
 
 class FullScreenActivity : AppCompatActivity() {
+    companion object {
+        val ACTION_CLOSE_ACTIVITY: String = "com.yourapp.ACTION_CLOSE_ACTIVITY"
+    }
+
     private lateinit var playerViewModel: PlayerViewModel
     private lateinit var playerView: PlayerView
 

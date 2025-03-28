@@ -11,6 +11,7 @@ activity = "1.9.1"
 constraintlayout = "2.2.1"
 media3ExoplayerHls = "1.5.1"
 media3ExoplayerDash = "1.5.1"
+media3ExoplayerSmoothstreaming = "1.5.1"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -23,6 +24,7 @@ androidx-activity = { group = "androidx.activity", name = "activity", version.re
 androidx-constraintlayout = { group = "androidx.constraintlayout", name = "constraintlayout", version.ref = "constraintlayout" }
 androidx-media3-exoplayer-hls = { group = "androidx.media3", name = "media3-exoplayer-hls", version.ref = "media3ExoplayerHls" }
 androidx-media3-exoplayer-dash = { group = "androidx.media3", name = "media3-exoplayer-dash", version.ref = "media3ExoplayerDash" }
+androidx-media3-exoplayer-smoothstreaming = { group = "androidx.media3", name = "media3-exoplayer-smoothstreaming", version.ref = "media3ExoplayerSmoothstreaming" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
