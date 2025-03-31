@@ -75,8 +75,11 @@ dependencies {
     //ktor
     implementation("io.ktor:ktor-server-netty:2.3.4")
     implementation("io.ktor:ktor-server-core:2.3.4")
+    implementation("io.ktor:ktor-client-content-negotiation:2.3.4")
     implementation("io.ktor:ktor-server-content-negotiation:2.3.4")
-    implementation("io.ktor:ktor-serialization-kotlinx-json:2.3.4")
+    implementation("io.ktor:ktor-server-resources:2.3.4")
+
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.5.21")
 
     //koin
     implementation ("io.insert-koin:koin-android:3.5.0")

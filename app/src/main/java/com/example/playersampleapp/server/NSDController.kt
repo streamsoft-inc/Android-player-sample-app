@@ -4,6 +4,7 @@ import android.content.Context
 import android.net.nsd.NsdManager
 import android.net.nsd.NsdServiceInfo
 import android.os.Build
+import android.util.Log
 import java.net.InetAddress
 
 typealias ServiceStatusListener = (NSDController.ServiceRegisterStatus?) -> Unit
@@ -79,6 +80,7 @@ class NSDController {
 
     fun start(port: Int): Boolean {
         println("nsd - start with $port")
+        Log.d("LAZA", "START WITH PORT $port")
         try {
             manager?.registerService(NsdServiceInfo().apply {
                 serviceName = "Artist Connection TV"
@@ -92,8 +94,10 @@ class NSDController {
                 setPort(port)
                 host = InetAddress.getLocalHost()
             }, NsdManager.PROTOCOL_DNS_SD, advertiseListener)
+            Log.d("LAZA", "VRATI TRUE")
             return true
         } catch (e: java.lang.IllegalArgumentException) {
+            Log.d("LAZA", "HVATAJ EXCEPTION")
             e.printStackTrace()
         }
         return false

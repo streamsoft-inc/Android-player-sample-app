@@ -1,5 +1,6 @@
 package com.example.playersampleapp.server
 
+import android.util.Log
 import com.example.playersampleapp.extension.getIP
 import com.example.playersampleapp.server.model.ConnectDTO
 import com.example.playersampleapp.server.model.DeviceStatusDTO
@@ -28,6 +29,7 @@ import io.ktor.server.response.respond
 import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import io.ktor.server.routing.routing
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
 
 typealias HttpCallbackResponse = (HttpMediaServerEvent<*>?) -> Unit
@@ -64,6 +66,7 @@ class EmbeddedMediaHttpServer(val endpoints: PlayerAPIEndpoint) {
 
     private var engine: ApplicationEngine? = null
 
+    @OptIn(ExperimentalSerializationApi::class)
     fun start() {
 
         Thread {
@@ -73,6 +76,7 @@ class EmbeddedMediaHttpServer(val endpoints: PlayerAPIEndpoint) {
                         prettyPrint = true
                         isLenient = true
                         ignoreUnknownKeys = true
+                        explicitNulls = false
                     })
                 }
                 routing {
@@ -177,6 +181,7 @@ class EmbeddedMediaHttpServer(val endpoints: PlayerAPIEndpoint) {
                             connected = true
                             call.respond(HttpStatusCode.OK)
                         } catch (e: Exception) {
+                            Log.d("LAZA", "GRESKA " + e.message)
                             e.printStackTrace()
                         }
                     }

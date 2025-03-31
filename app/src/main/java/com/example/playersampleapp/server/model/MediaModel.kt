@@ -1,5 +1,6 @@
 package com.example.playersampleapp.server.model
 
+import kotlinx.serialization.Serializable
 import java.io.File
 
 sealed class MediaCommands(var hasBody: Boolean = false) {
@@ -55,22 +56,22 @@ val basePlayerAPIEndpoint = PlayerAPIEndpoint(
     disconnect = "/device/disconnect"
 )
 
-@kotlinx.serialization.Serializable
+@Serializable
 class PlayDTO(val id: String)
 
-@kotlinx.serialization.Serializable
+@Serializable
 class SeekDTO(val position: Float)
 
-@kotlinx.serialization.Serializable
+@Serializable
 class MuteDTO(val value: Boolean)
 
-@kotlinx.serialization.Serializable
+@Serializable
 class VolumeDTO(val value: Float)
 
-@kotlinx.serialization.Serializable
+@Serializable
 class ConnectDTO(val name: String, val version: String)
 
-@kotlinx.serialization.Serializable
+@Serializable
 class PlaylistItemDTO(
     val id: String,
     val url: String,
@@ -79,7 +80,7 @@ class PlaylistItemDTO(
     val metadata: MetadataDTO
 )
 
-@kotlinx.serialization.Serializable
+@Serializable
 class MetadataDTO(
     val title: String,
     val artistName: String,
@@ -88,14 +89,14 @@ class MetadataDTO(
     val format: String
 )
 
-@kotlinx.serialization.Serializable
+@Serializable
 class DeviceStatusDTO(
     val id: String,
     val state: StatusType,
     val position: Float? = 0.0f
 )
 
-@kotlinx.serialization.Serializable
+@Serializable
 class ErrorResponceDTO(
     val error:String,
     val code: Int?
