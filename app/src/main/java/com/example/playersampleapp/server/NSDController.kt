@@ -80,7 +80,6 @@ class NSDController {
 
     fun start(port: Int): Boolean {
         println("nsd - start with $port")
-        Log.d("LAZA", "START WITH PORT $port")
         try {
             manager?.registerService(NsdServiceInfo().apply {
                 serviceName = "Artist Connection TV"
@@ -94,10 +93,8 @@ class NSDController {
                 setPort(port)
                 host = InetAddress.getLocalHost()
             }, NsdManager.PROTOCOL_DNS_SD, advertiseListener)
-            Log.d("LAZA", "VRATI TRUE")
             return true
         } catch (e: java.lang.IllegalArgumentException) {
-            Log.d("LAZA", "HVATAJ EXCEPTION")
             e.printStackTrace()
         }
         return false

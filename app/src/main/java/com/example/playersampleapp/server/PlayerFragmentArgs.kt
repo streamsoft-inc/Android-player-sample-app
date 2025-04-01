@@ -1,16 +1,17 @@
 package com.example.playersampleapp.server
 
 import android.os.Bundle
+import com.example.playersampleapp.model.Models
 
-class PlaybackFragmentArgs(var playlist: String? = null, var index: Int = -1, var liveShow: String? = null, var preloaded:Boolean = false) {
+class PlaybackFragmentArgs(var playlist: Models.Album? = null, var index: Int = -1, var liveShow: Models.LiveShow? = null, var preloaded:Boolean = false) {
 
     companion object {
         fun fromBundle(bundle: Bundle?) : PlaybackFragmentArgs {
             val index = bundle?.getInt("mediaFileInfo", -1) ?: -1
-//            val album: Album? = bundle?.getParcelable("playlist")
-//            val live: LiveShow? = bundle?.getParcelable("liveshow")
+            val album: Models.Album? = bundle?.getParcelable("playlist")
+            val live: Models.LiveShow? = bundle?.getParcelable("liveshow")
             val preloaded: Boolean = bundle?.getBoolean("preloaded") ?: false
-            return PlaybackFragmentArgs("album", index, "live", preloaded)
+            return PlaybackFragmentArgs(album, index, live, preloaded)
         }
 
     }
@@ -23,8 +24,8 @@ class PlaybackFragmentArgs(var playlist: String? = null, var index: Int = -1, va
         return Bundle().apply {
             putInt("mediaFileInfo", index)
             putBoolean("preloaded", preloaded)
-//            putParcelable("playlist", playlist)
-//            putParcelable("liveshow", liveShow)
+            putParcelable("playlist", playlist)
+            putParcelable("liveshow", liveShow)
         }
     }
 }

@@ -3,9 +3,10 @@ package com.example.playersampleapp.server
 import android.annotation.SuppressLint
 import android.content.Context
 import android.net.Uri
-import android.util.Log
 import android.widget.Toast
 import androidx.annotation.OptIn
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.util.Util
@@ -29,6 +30,9 @@ class ConnectController(
 ) {
     private var mContext: Context? = null
     private var nsdStarted: Boolean = false
+    private val _serverAddress = MutableLiveData<Pair<String, String>>()
+    val serverAddress: LiveData<Pair<String, String>> get() = _serverAddress
+
     private val status: ServiceStatusListener = {
         it?.let {
             println("status change - $it")
@@ -38,7 +42,6 @@ class ConnectController(
     private val mediaServerCallback : HttpCallbackResponse = {
 
         it?.payload?.onSuccess { command ->
-            Log.d("LAZA", "COMMANDA $command")
             when (command) {
                 is MediaCommands.Connect -> {
 
@@ -56,6 +59,7 @@ class ConnectController(
                 }
                 is AddressInfo -> {
                     println("[ACC] callback received ${command.host} - ${command.port}")
+                    _serverAddress.postValue(Pair(command.host, command.port.toString()))
 
                     nsdController.status = status
                     nsdStarted = nsdController.start(command.port)
@@ -110,7 +114,6 @@ class ConnectController(
         lastStatus = appMediaPlayer.status()
     }
     fun start(context: Context) {
-        Log.d("LAZA", "STARTUJ SERVER")
         mContext = context
         Thread{
             mediaHttpServer.stop()

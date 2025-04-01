@@ -1,6 +1,7 @@
 package com.example.playersampleapp.server
 
 import android.util.Log
+import android.widget.Toast
 import com.example.playersampleapp.extension.getIP
 import com.example.playersampleapp.server.model.ConnectDTO
 import com.example.playersampleapp.server.model.DeviceStatusDTO
@@ -181,7 +182,6 @@ class EmbeddedMediaHttpServer(val endpoints: PlayerAPIEndpoint) {
                             connected = true
                             call.respond(HttpStatusCode.OK)
                         } catch (e: Exception) {
-                            Log.d("LAZA", "GRESKA " + e.message)
                             e.printStackTrace()
                         }
                     }

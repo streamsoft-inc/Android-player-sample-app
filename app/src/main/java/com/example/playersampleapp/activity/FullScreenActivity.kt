@@ -3,8 +3,10 @@ package com.example.playersampleapp.activity
 import android.content.res.Configuration
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import android.view.WindowInsets
 import android.view.WindowInsetsController
+import android.widget.Toast
 import androidx.annotation.OptIn
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
@@ -19,6 +21,7 @@ import androidx.media3.exoplayer.source.MediaSource
 import androidx.media3.exoplayer.source.ProgressiveMediaSource
 import androidx.media3.ui.PlayerView
 import com.example.playersampleapp.R
+import com.example.playersampleapp.server.PlaybackFragmentArgs
 import com.example.playersampleapp.viewModel.PlayerViewModel
 
 
@@ -42,43 +45,47 @@ class FullScreenActivity : AppCompatActivity() {
         playerViewModel = ViewModelProvider(this)[PlayerViewModel::class.java]
         playerView = findViewById(R.id.playerView)
 
+        val fragmentArgs = PlaybackFragmentArgs.fromBundle(intent.extras)
+        Log.d("LAZA", "FRAGMENT ARGS ${fragmentArgs.index} ${fragmentArgs.preloaded} ${fragmentArgs.liveShow}  ${fragmentArgs.playlist}")
+
         if (playerViewModel.player == null) {
             playerViewModel.player = ExoPlayer.Builder(this).build()
 
             val videoUrl = intent.getStringExtra("VIDEO_URL") ?: ""
-            val mediaSource: MediaSource = when {
-                videoUrl.endsWith(".mp4") -> {
-                    val mediaItem: MediaItem = MediaItem.fromUri(videoUrl)
-                    val dataSourceFactory = DefaultHttpDataSource.Factory()
-                    ProgressiveMediaSource.Factory(dataSourceFactory)
-                        .createMediaSource(mediaItem)
-                }
-                videoUrl.endsWith(".m3u8") -> {
-                    val mediaItem: MediaItem = MediaItem.fromUri(videoUrl)
-                    val dataSourceFactory = DefaultHttpDataSource.Factory()
-                    HlsMediaSource.Factory(dataSourceFactory)
-                        .createMediaSource(mediaItem)
-                }
-                videoUrl.endsWith(".mpd") -> {
-                    val mediaItem: MediaItem = MediaItem.fromUri(videoUrl)
-                    val dataSourceFactory = DefaultHttpDataSource.Factory()
-                    DashMediaSource.Factory(dataSourceFactory)
-                        .createMediaSource(mediaItem)
-                }
-                else -> {
-                    throw IllegalArgumentException("Unsupported video format")
-                }
-            }
+            videoUrl.takeIf { it.isNotBlank() }?.let { url ->
+                val mediaSource = createMediaSource(url)
 
-            playerViewModel.player?.apply {
-                setMediaSource(mediaSource)
-                prepare()
+                playerViewModel.player?.apply {
+                    setMediaSource(mediaSource)
+                    prepare()
+                }
+            } ?: run {
+                Toast.makeText(this, "URL is empty", Toast.LENGTH_SHORT).show()
             }
         }
 
         playerView.player = playerViewModel.player
         playerViewModel.player?.seekTo(playerViewModel.playbackPosition)
         playerViewModel.player?.playWhenReady = true
+    }
+
+    @OptIn(UnstableApi::class)
+    private fun createMediaSource(url: String): MediaSource {
+        val mediaItem = MediaItem.fromUri(url)
+        val dataSourceFactory = DefaultHttpDataSource.Factory()
+
+        return when {
+            url.endsWith(".mp4") -> {
+                ProgressiveMediaSource.Factory(dataSourceFactory).createMediaSource(mediaItem)
+            }
+            url.endsWith(".m3u8") -> {
+                HlsMediaSource.Factory(dataSourceFactory).createMediaSource(mediaItem)
+            }
+            url.endsWith(".mpd") -> {
+                DashMediaSource.Factory(dataSourceFactory).createMediaSource(mediaItem)
+            }
+            else -> throw IllegalArgumentException("Unsupported video format")
+        }
     }
 
     override fun onStop() {

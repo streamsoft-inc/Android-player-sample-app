@@ -8,11 +8,12 @@ import com.example.playersampleapp.server.model.PlaylistItemDTO
 import com.example.playersampleapp.server.model.StatusType
 
 class TVAppMediaPlayer(/*val tvAudioPlayer: TVAudioPlayer*/) : AppMediaPlayer{
-    init {
-//        println("instance_code in player: ${tvAudioPlayer.hashCode()}")
-    }
+
     private var mContext: Context? = null
+    private var metadata: PlayMetadata? = null
+
     override fun load(playlist: List<PlaylistItemDTO>) {
+
         buildMetadata(playlist).let { tracks ->
 //            tvAudioPlayer.prepareMetadata(tracks)
             mContext?.let{

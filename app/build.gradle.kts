@@ -2,6 +2,8 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.jetbrains.kotlin.android)
     kotlin("plugin.serialization") version "1.8.0"
+    id("kotlin-parcelize")
+    kotlin("kapt")
 }
 
 android {
@@ -71,6 +73,7 @@ dependencies {
     //json
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0")
     implementation("io.ktor:ktor-serialization-kotlinx-json:2.3.6")
+    implementation("com.google.code.gson:gson:2.10.1")
 
     //ktor
     implementation("io.ktor:ktor-server-netty:2.3.4")
@@ -83,4 +86,8 @@ dependencies {
 
     //koin
     implementation ("io.insert-koin:koin-android:3.5.0")
+
+    //room
+    implementation("androidx.room:room-runtime:2.6.1")
+    kapt("androidx.room:room-compiler:2.6.1")
 }
