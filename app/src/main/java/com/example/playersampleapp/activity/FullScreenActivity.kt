@@ -38,12 +38,17 @@ class FullScreenActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_full_screen)
 
+        //todo observer
+
         hideStatusBar()
 
         playerView = findViewById(R.id.playerView)
 
         val videoUrl = intent.getStringExtra("VIDEO_URL") ?: ""
         val videoUrls = intent.getStringArrayListExtra("VIDEO_URLS") ?: arrayListOf()
+
+        playerViewModel.player.stop()
+        playerViewModel.player.clearMediaItems()
 
         when {
             videoUrls.isNotEmpty() -> {

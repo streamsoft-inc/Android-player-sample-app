@@ -2,22 +2,10 @@ package com.example.playersampleapp.server
 
 import android.annotation.SuppressLint
 import android.content.Context
-import android.net.Uri
 import android.widget.Toast
-import androidx.annotation.OptIn
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.media3.common.C
-import androidx.media3.common.MediaItem
-import androidx.media3.common.util.Util
-import androidx.media3.datasource.DataSource
 import androidx.media3.datasource.cache.Cache
-import androidx.media3.exoplayer.dash.DashMediaSource
-import androidx.media3.exoplayer.hls.HlsMediaSource
-import androidx.media3.exoplayer.smoothstreaming.SsMediaSource
-import androidx.media3.exoplayer.source.MediaSource
-import androidx.media3.exoplayer.source.ProgressiveMediaSource
-import androidx.media3.extractor.DefaultExtractorsFactory
 import com.example.playersampleapp.server.model.DeviceStatusDTO
 import com.example.playersampleapp.server.model.MediaCommands
 import com.example.playersampleapp.shared.MainThreadDispatcher
@@ -25,7 +13,6 @@ import com.example.playersampleapp.viewModel.PlayerViewModel
 
 class ConnectController(
     val mediaHttpServer: EmbeddedMediaHttpServer,
-   /* val appMediaPlayer: AppMediaPlayer,*/
     private val viewModel: PlayerViewModel,
     private val nsdController: NSDController,
     @SuppressLint("UnsafeOptInUsageError") private val cache: Cache,
@@ -68,51 +55,42 @@ class ConnectController(
                 }
                 is MediaCommands.Load -> {
                     println("[ACC] load")
-//                    appMediaPlayer.load(command.playlist)
                     viewModel.load(command.playlist)
                 }
                 is MediaCommands.Pause -> {
                     println("[ACC] pause")
-//                    appMediaPlayer.pause()
                     viewModel.pause()
                 }
                 is MediaCommands.Play -> {
                     println("[ACC] play")
                     readStatus()
-//                    appMediaPlayer.play(command.play.id)
                     viewModel.play(command.play.id)
                 }
                 is MediaCommands.Previous -> {
                     println("[ACC] previous")
-//                    appMediaPlayer.previous()
                     viewModel.previous()
                 }
                 is MediaCommands.Next -> {
                     println("[ACC] next")
-//                    appMediaPlayer.next()
                     viewModel.next()
                 }
                 is MediaCommands.Stop -> {
                     println("[ACC] stop")
-//                    appMediaPlayer.stop()
                     viewModel.stop()
                 }
                 is MediaCommands.SeekTo -> {
                     val position = command.seekDTO.position
                     println("[ACC] seek to $position")
-//                    appMediaPlayer.seek((position * 1000).toLong())
                     viewModel.seekTo((position * 1000).toLong())
                 }
                 is MediaCommands.Mute -> {
                     val mute = command.muteDTO
                     println("[ACC] mute to $mute")
-//                    appMediaPlayer.mute(mute.value)
                     viewModel.mute(mute.value)
                 }
                 is MediaCommands.SetVolume -> {
                     val volume = command.volumeDTO.value
                     println("[ACC] volume to $volume")
-//                    appMediaPlayer.setVolume((volume * 100).toInt())
                     viewModel.setVolume((volume * 100).toInt())
                 }
             }
@@ -131,7 +109,6 @@ class ConnectController(
         Thread{
             mediaHttpServer.stop()
             nsdController.stop()
-//            appMediaPlayer.setupWith(context)
             viewModel.setupWith(context)
             nsdController.setupWith(context)
             Thread.sleep(2000)
@@ -153,22 +130,5 @@ class ConnectController(
     fun stop() {
         mediaHttpServer.stop()
         if (nsdStarted) nsdController.stop()
-    }
-
-
-    @OptIn(markerClass = [androidx.media3.common.util.UnstableApi::class])
-    private fun createSingleMediaSource(
-        uri: Uri,
-        dataSourceFactory: DataSource.Factory
-    ): MediaSource {
-        val mediaItem = MediaItem.fromUri(uri)
-        val type = Util.inferContentType(uri)
-        return when (type) {
-            C.TYPE_DASH -> DashMediaSource.Factory(dataSourceFactory).createMediaSource(mediaItem)
-            C.TYPE_SS -> SsMediaSource.Factory(dataSourceFactory).createMediaSource(mediaItem)
-            C.TYPE_HLS -> HlsMediaSource.Factory(dataSourceFactory).createMediaSource(mediaItem)
-            else -> ProgressiveMediaSource.Factory(dataSourceFactory, DefaultExtractorsFactory())
-                .createMediaSource(mediaItem)
-        }
     }
 }

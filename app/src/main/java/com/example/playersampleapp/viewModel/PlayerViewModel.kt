@@ -9,6 +9,8 @@ import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import androidx.media3.common.C
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
@@ -26,6 +28,9 @@ class PlayerViewModel(application: Application, val player: ExoPlayer) : Android
     var playbackPosition: Long = 0
     private var currentMetadata: PlayMetadata? = null
     private var mContext: Context? = null
+
+    private val _stopEvent = MutableLiveData<Boolean>()
+    val stopEvent: LiveData<Boolean> get() = _stopEvent
 
     fun load(playlist: List<PlaylistItemDTO>) {
         buildMetadata(playlist).let { tracks ->
@@ -50,14 +55,11 @@ class PlayerViewModel(application: Application, val player: ExoPlayer) : Android
     }
 
     fun play(mediaId: String) {
-        Log.d("LAZA", "[acc] play metoda VM")
         currentMetadata?.tracks?.indexOfFirst { item -> mediaId == item.mediaId }?.takeIf { it != -1 }?.let {
-            Log.d("LAZA", "[acc] play metoda VM nasao ga je")
             val index = player.currentMediaItemIndex
             if (index != it) player.seekTo(it, C.TIME_UNSET)
             player.playWhenReady = true
         }
-        Log.d("LAZA", "[acc] play metoda VM zavrsio")
     }
 
     fun previous() {
@@ -66,8 +68,8 @@ class PlayerViewModel(application: Application, val player: ExoPlayer) : Android
 
     fun next() {
         if (player.hasNextMediaItem()) {
-            player.seekToNext()  // Prelazak na sledeći media item
-            player.playWhenReady = true  // Pokreće reprodukciju odmah
+            player.seekToNext()
+            player.playWhenReady = true
         } else {
             Log.d("LAZA", "[ACC] No next media item")
         }
@@ -80,6 +82,8 @@ class PlayerViewModel(application: Application, val player: ExoPlayer) : Android
     fun stop() {
         player.stop()
         player.release()
+        Log.d("LAZA", "POSALJI EVENT")
+        _stopEvent.postValue(true)
     }
 
     fun mute(mute: Boolean) {
@@ -170,6 +174,4 @@ class PlayerViewModel(application: Application, val player: ExoPlayer) : Android
     fun setupWith(context: Context) {
         mContext = context
     }
-
-
 }
