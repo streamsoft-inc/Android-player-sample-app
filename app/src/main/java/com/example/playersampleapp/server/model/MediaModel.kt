@@ -1,5 +1,6 @@
 package com.example.playersampleapp.server.model
 
+import com.example.playersampleapp.server.ACTrackSource
 import kotlinx.serialization.Serializable
 import java.io.File
 
@@ -125,3 +126,18 @@ data class FileDownloaderConfig(
     val numOfParallelDownloads: Int = 1,
     val downloadDirectory: File
 )
+
+data class PlayerTrackEvent(
+    val track: ACTrackSource,
+    val inProgress: Boolean,
+    val playlistIndex: Int,
+    var playbackEventType: PlaybackEventType
+)
+
+enum class PlaybackEventType {
+    LOAD,
+    START,
+    PLAY,
+    PAUSE,
+    END
+}

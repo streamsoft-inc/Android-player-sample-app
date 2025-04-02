@@ -21,10 +21,12 @@ import androidx.media3.extractor.DefaultExtractorsFactory
 import com.example.playersampleapp.server.model.DeviceStatusDTO
 import com.example.playersampleapp.server.model.MediaCommands
 import com.example.playersampleapp.shared.MainThreadDispatcher
+import com.example.playersampleapp.viewModel.PlayerViewModel
 
 class ConnectController(
     val mediaHttpServer: EmbeddedMediaHttpServer,
-    val appMediaPlayer: AppMediaPlayer,
+   /* val appMediaPlayer: AppMediaPlayer,*/
+    private val viewModel: PlayerViewModel,
     private val nsdController: NSDController,
     @SuppressLint("UnsafeOptInUsageError") private val cache: Cache,
 ) {
@@ -66,43 +68,52 @@ class ConnectController(
                 }
                 is MediaCommands.Load -> {
                     println("[ACC] load")
-                    appMediaPlayer.load(command.playlist)
+//                    appMediaPlayer.load(command.playlist)
+                    viewModel.load(command.playlist)
                 }
                 is MediaCommands.Pause -> {
                     println("[ACC] pause")
-                    appMediaPlayer.pause()
+//                    appMediaPlayer.pause()
+                    viewModel.pause()
                 }
                 is MediaCommands.Play -> {
                     println("[ACC] play")
                     readStatus()
-                    appMediaPlayer.play(command.play.id)
+//                    appMediaPlayer.play(command.play.id)
+                    viewModel.play(command.play.id)
                 }
                 is MediaCommands.Previous -> {
                     println("[ACC] previous")
-                    appMediaPlayer.previous()
+//                    appMediaPlayer.previous()
+                    viewModel.previous()
                 }
                 is MediaCommands.Next -> {
                     println("[ACC] next")
-                    appMediaPlayer.next()
+//                    appMediaPlayer.next()
+                    viewModel.next()
                 }
                 is MediaCommands.Stop -> {
                     println("[ACC] stop")
-                    appMediaPlayer.stop()
+//                    appMediaPlayer.stop()
+                    viewModel.stop()
                 }
                 is MediaCommands.SeekTo -> {
                     val position = command.seekDTO.position
                     println("[ACC] seek to $position")
-                    appMediaPlayer.seek((position * 1000).toLong())
+//                    appMediaPlayer.seek((position * 1000).toLong())
+                    viewModel.seekTo((position * 1000).toLong())
                 }
                 is MediaCommands.Mute -> {
                     val mute = command.muteDTO
                     println("[ACC] mute to $mute")
-                    appMediaPlayer.mute(mute.value)
+//                    appMediaPlayer.mute(mute.value)
+                    viewModel.mute(mute.value)
                 }
                 is MediaCommands.SetVolume -> {
                     val volume = command.volumeDTO.value
                     println("[ACC] volume to $volume")
-                    appMediaPlayer.setVolume((volume * 100).toInt())
+//                    appMediaPlayer.setVolume((volume * 100).toInt())
+                    viewModel.setVolume((volume * 100).toInt())
                 }
             }
         }
@@ -111,14 +122,17 @@ class ConnectController(
     private var lastStatus: DeviceStatusDTO? = null
 
     private fun readStatus() {
-        lastStatus = appMediaPlayer.status()
+//        lastStatus = appMediaPlayer.status()
+        lastStatus = viewModel.status()
     }
+
     fun start(context: Context) {
         mContext = context
         Thread{
             mediaHttpServer.stop()
             nsdController.stop()
-            appMediaPlayer.setupWith(context)
+//            appMediaPlayer.setupWith(context)
+            viewModel.setupWith(context)
             nsdController.setupWith(context)
             Thread.sleep(2000)
             mediaHttpServer.callback = mediaServerCallback

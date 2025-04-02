@@ -9,6 +9,7 @@ appcompat = "1.7.0"
 material = "1.12.0"
 activity = "1.9.1"
 constraintlayout = "2.2.1"
+media = "1.2.1'"
 media3ExoplayerHls = "1.5.1"
 media3ExoplayerDash = "1.5.1"
 media3ExoplayerSmoothstreaming = "1.5.1"
@@ -25,6 +26,7 @@ androidx-constraintlayout = { group = "androidx.constraintlayout", name = "const
 androidx-media3-exoplayer-hls = { group = "androidx.media3", name = "media3-exoplayer-hls", version.ref = "media3ExoplayerHls" }
 androidx-media3-exoplayer-dash = { group = "androidx.media3", name = "media3-exoplayer-dash", version.ref = "media3ExoplayerDash" }
 androidx-media3-exoplayer-smoothstreaming = { group = "androidx.media3", name = "media3-exoplayer-smoothstreaming", version.ref = "media3ExoplayerSmoothstreaming" }
+media = { module = "implementation 'androidx.media:media", version.ref = "media" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

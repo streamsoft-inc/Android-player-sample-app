@@ -90,4 +90,10 @@ dependencies {
     //room
     implementation("androidx.room:room-runtime:2.6.1")
     kapt("androidx.room:room-compiler:2.6.1")
+
+    //rx
+    implementation("io.reactivex.rxjava2:rxjava:2.2.21")
+    implementation("io.reactivex.rxjava2:rxandroid:2.1.1")
+
+    implementation("androidx.legacy:legacy-support-v4:1.0.0")
 }
