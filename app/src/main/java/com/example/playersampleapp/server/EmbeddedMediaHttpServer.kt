@@ -1,7 +1,5 @@
 package com.example.playersampleapp.server
 
-import android.util.Log
-import android.widget.Toast
 import com.example.playersampleapp.extension.getIP
 import com.example.playersampleapp.server.model.ConnectDTO
 import com.example.playersampleapp.server.model.DeviceStatusDTO
@@ -14,9 +12,8 @@ import com.example.playersampleapp.server.model.PlaylistItemDTO
 import com.example.playersampleapp.server.model.SeekDTO
 import com.example.playersampleapp.server.model.StatusType
 import com.example.playersampleapp.server.model.VolumeDTO
-import io.ktor.http.HttpStatusCode
-import kotlinx.coroutines.runBlocking
 import com.example.playersampleapp.shared.MainThreadDispatcher
+import io.ktor.http.HttpStatusCode
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.application.call
 import io.ktor.server.application.install
@@ -30,6 +27,7 @@ import io.ktor.server.response.respond
 import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import io.ktor.server.routing.routing
+import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
 
@@ -195,7 +193,6 @@ class EmbeddedMediaHttpServer(val endpoints: PlayerAPIEndpoint) {
                     get(endpoints.status) {
                         println("[ACC] server call - status")
                         try {
-//                            MainThreadDispatcher.post{
                             val status = requestCallbackChannel.status()
                             status?.let {
                                 call.respond(HttpStatusCode.OK, status)

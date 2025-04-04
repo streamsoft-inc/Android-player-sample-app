@@ -70,8 +70,6 @@ class PlayerViewModel(application: Application, val player: ExoPlayer) : Android
         if (player.hasNextMediaItem()) {
             player.seekToNext()
             player.playWhenReady = true
-        } else {
-            Log.d("LAZA", "[ACC] No next media item")
         }
     }
 
@@ -82,7 +80,6 @@ class PlayerViewModel(application: Application, val player: ExoPlayer) : Android
     fun stop() {
         player.stop()
         player.release()
-        Log.d("LAZA", "POSALJI EVENT")
         _stopEvent.postValue(true)
     }
 

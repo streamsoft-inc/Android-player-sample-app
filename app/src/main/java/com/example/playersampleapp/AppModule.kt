@@ -16,8 +16,6 @@ import com.example.playersampleapp.server.AppMediaPlayer
 import com.example.playersampleapp.server.ConnectController
 import com.example.playersampleapp.server.EmbeddedMediaHttpServer
 import com.example.playersampleapp.server.NSDController
-import com.example.playersampleapp.server.TVAppMediaPlayer
-import com.example.playersampleapp.server.TVAudioPlayer
 import com.example.playersampleapp.server.model.FileDownloaderConfig
 import com.example.playersampleapp.server.model.basePlayerAPIEndpoint
 import com.example.playersampleapp.viewModel.PlayerViewModel
@@ -37,10 +35,6 @@ fun appModule(appContext: Context, fileDownloaderConfig: FileDownloaderConfig) =
         DefaultDatabaseProvider(StandaloneDatabaseProvider(appContext))
     }
 
-    single {
-        TVAudioPlayer(get(), get())
-    }
-
     // NEED TO HAVE ONLY ONE INSTANCE OF SIMPLE CACHE, SO IT MUST BE IN MODULE WHICH LIVES AS LONG AS APP
     single<Cache> {
         SimpleCache(
@@ -48,10 +42,6 @@ fun appModule(appContext: Context, fileDownloaderConfig: FileDownloaderConfig) =
             LeastRecentlyUsedCacheEvictor(if (appContext.isOnTV()) TV_CACHE_SIZE else MOBILE_CACHE_SIZE),
             get<DatabaseProvider>()
         )
-    }
-
-    single <AppMediaPlayer> {
-        TVAppMediaPlayer(get(), get())
     }
 
     single {

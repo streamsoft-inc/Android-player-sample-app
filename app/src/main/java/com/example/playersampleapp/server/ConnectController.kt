@@ -100,7 +100,6 @@ class ConnectController(
     private var lastStatus: DeviceStatusDTO? = null
 
     private fun readStatus() {
-//        lastStatus = appMediaPlayer.status()
         lastStatus = viewModel.status()
     }
 

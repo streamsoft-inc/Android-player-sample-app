@@ -58,10 +58,6 @@ fun Context.deviceSupports360Audio(): Boolean {
 }
 
 fun getIP(): String? {
-//        val context = applicationContext
-//        val wm: WifiManager = context.getSystemService(Context.WIFI_SERVICE) as WifiManager
-//        val ip: String = Formatter.formatIpAddress(wm.getConnectionInfo().getIpAddress())
-
     println("ip - ${InetAddress.getLocalHost().hostName} ${InetAddress.getLocalHost().hostAddress}")
     try {
         val en: Enumeration<NetworkInterface> = NetworkInterface.getNetworkInterfaces()
