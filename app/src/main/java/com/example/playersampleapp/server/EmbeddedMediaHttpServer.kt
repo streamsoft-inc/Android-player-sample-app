@@ -1,7 +1,10 @@
 package com.example.playersampleapp.server
 
-import com.example.playersampleapp.extension.getIP
+import android.os.Handler
+import android.os.Looper
 import com.example.playersampleapp.server.model.ConnectDTO
+import com.example.playersampleapp.server.model.DeviceCapabilitiesDTO
+import com.example.playersampleapp.server.model.DeviceConnectDTO
 import com.example.playersampleapp.server.model.DeviceStatusDTO
 import com.example.playersampleapp.server.model.ErrorResponceDTO
 import com.example.playersampleapp.server.model.MediaCommands
@@ -12,7 +15,6 @@ import com.example.playersampleapp.server.model.PlaylistItemDTO
 import com.example.playersampleapp.server.model.SeekDTO
 import com.example.playersampleapp.server.model.StatusType
 import com.example.playersampleapp.server.model.VolumeDTO
-import com.example.playersampleapp.shared.MainThreadDispatcher
 import io.ktor.http.HttpStatusCode
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.application.call
@@ -30,6 +32,10 @@ import io.ktor.server.routing.routing
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
+import java.net.InetAddress
+import java.net.NetworkInterface
+import java.net.SocketException
+import java.util.Enumeration
 
 typealias HttpCallbackResponse = (HttpMediaServerEvent<*>?) -> Unit
 data class HttpMediaServerEvent<T>(val payload: Result<T>)
@@ -38,23 +44,26 @@ data class AddressInfo(val host: String, val port: Int)
 
 interface RequestCallbackChannel {
     fun status() : DeviceStatusDTO?
+    fun device() : DeviceConnectDTO?
 }
 
 class EmbeddedMediaHttpServer(val endpoints: PlayerAPIEndpoint) {
 
-    var callback : HttpCallbackResponse = {
-
-    }
+    var callback : HttpCallbackResponse = {}
 
     var requestCallbackChannel : RequestCallbackChannel = object : RequestCallbackChannel {
         override fun status(): DeviceStatusDTO? {
+            return null
+        }
+
+        override fun device(): DeviceConnectDTO? {
             return null
         }
     }
 
 
     private fun success(mediaCommands: MediaCommands) {
-        MainThreadDispatcher.post {
+        Handler(Looper.getMainLooper()).post {
             callback.invoke(HttpMediaServerEvent(Result.success(mediaCommands)))
         }
     }
@@ -62,14 +71,14 @@ class EmbeddedMediaHttpServer(val endpoints: PlayerAPIEndpoint) {
     private fun error(throwable: Throwable) {
         callback.invoke(HttpMediaServerEvent(Result.failure<Throwable>(throwable)))
     }
-
     private var engine: ApplicationEngine? = null
 
     @OptIn(ExperimentalSerializationApi::class)
     fun start() {
 
         Thread {
-            engine = embeddedServer(Netty, port = 0) {
+            // listen on local network and bind on "all interfaces"
+            engine = embeddedServer(Netty, port = 0, host = "0.0.0.0") {
                 install(ContentNegotiation) {
                     json(Json {
                         prettyPrint = true
@@ -106,8 +115,8 @@ class EmbeddedMediaHttpServer(val endpoints: PlayerAPIEndpoint) {
                     post(endpoints.pause) {
                         println("[ACC] server - request pause")
                         try {
-
-                            success(MediaCommands.Pause)
+                            val param = call.request.queryParameters["value"] ?: "true"
+                            success(MediaCommands.Pause( param.toBoolean() ))
                             call.respond(HttpStatusCode.NoContent)
                         } catch (t: Throwable) {
                             t.printStackTrace()
@@ -177,16 +186,17 @@ class EmbeddedMediaHttpServer(val endpoints: PlayerAPIEndpoint) {
                             println("[ACC] server - connect")
                             val connectDTO = call.receive<ConnectDTO>()
                             success(MediaCommands.Connect(connectDTO))
-                            connected = true
-                            call.respond(HttpStatusCode.OK)
+                            val device = requestCallbackChannel.device()
+                            device?.let {
+                                println("[ACC] server - respond $it")
+                                call.respond(HttpStatusCode.OK, device)
+                            }
                         } catch (e: Exception) {
                             e.printStackTrace()
                         }
                     }
                     post(endpoints.disconnect){
                         println("[ACC] server - disconnect")
-                        connected = false
-                        //todo implement disconnect logic. Should we stop playback?
                         success(MediaCommands.Disconnect())
                         call.respond(HttpStatusCode.OK)
                     }
@@ -202,13 +212,22 @@ class EmbeddedMediaHttpServer(val endpoints: PlayerAPIEndpoint) {
                             call.respond(HttpStatusCode.BadRequest, ErrorResponceDTO("Error, unable to get current status.", code = null))
                         }
                     }
+                    get(endpoints.capabilities) {
+                        try {
+                            call.respond(HttpStatusCode.OK, DeviceCapabilitiesDTO(volume = true, video = true))
+                        } catch (e: Exception) {
+                            println("[ACC] ERROR - status")
+                            e.printStackTrace()
+                            call.respond(HttpStatusCode.BadRequest, ErrorResponceDTO("Error, unable to get current capabilities.", code = null))
+                        }
+                    }
                 }
             }
             engine?.start(wait = false)
 
             println("server init - engine created")
             (engine?.application?.environment as ApplicationEngineEnvironment?)?.connectors?.forEach {
-                println("server ini, address - ${it.host}:${it.port}")
+                println("server init, address - ${it.host}:${it.port}")
             }
             val port = runBlocking { engine?.resolvedConnectors()?.firstOrNull()?.port } ?: return@Thread
             println("server init - read - port $port")
@@ -221,12 +240,30 @@ class EmbeddedMediaHttpServer(val endpoints: PlayerAPIEndpoint) {
 
         }.start()
     }
-
-    private var connected = false
-
     fun stop() {
         println("server init - stop req")
         engine?.stop()
         println("server init - stop done")
+    }
+    fun getIP(): String? {
+        println("ip - ${InetAddress.getLocalHost().hostName} ${InetAddress.getLocalHost().hostAddress}")
+        try {
+            val en: Enumeration<NetworkInterface> = NetworkInterface.getNetworkInterfaces()
+            while (en.hasMoreElements()) {
+                val intf: NetworkInterface = en.nextElement()
+                val enumIpAddr: Enumeration<InetAddress> = intf.inetAddresses
+                while (enumIpAddr.hasMoreElements()) {
+                    val inetAddress: InetAddress = enumIpAddr.nextElement()
+                    val ipAddress = inetAddress.hostAddress
+                    if (!inetAddress.isLoopbackAddress && ipAddress != null && !ipAddress.contains(":")) {
+                        println("ip-address: $ipAddress")
+                        return ipAddress
+                    }
+                }
+            }
+        } catch (ex: SocketException) {
+            ex.printStackTrace()
+        }
+        return null
     }
 }

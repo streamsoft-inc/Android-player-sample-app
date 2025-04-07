@@ -9,16 +9,10 @@ import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.media3.common.C
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
 import com.example.playersampleapp.activity.FullScreenActivity
-import com.example.playersampleapp.extension.durationToTime
-import com.example.playersampleapp.server.ACTrackSource
-import com.example.playersampleapp.server.PlayMetadata
-import com.example.playersampleapp.server.TrackSourceType
 import com.example.playersampleapp.server.model.DeviceStatusDTO
 import com.example.playersampleapp.server.model.PlaylistItemDTO
 import com.example.playersampleapp.server.model.StatusType
@@ -26,36 +20,32 @@ import kotlin.math.roundToInt
 
 class PlayerViewModel(application: Application, val player: ExoPlayer) : AndroidViewModel(application) {
     var playbackPosition: Long = 0
-    private var currentMetadata: PlayMetadata? = null
+    private var currentPlaylist: List<PlaylistItemDTO> = listOf()
     private var mContext: Context? = null
 
-    private val _stopEvent = MutableLiveData<Boolean>()
-    val stopEvent: LiveData<Boolean> get() = _stopEvent
 
     fun load(playlist: List<PlaylistItemDTO>) {
-        buildMetadata(playlist).let { tracks ->
-            prepareMetadata(tracks)
-
-
-
-            mContext?.let {
-                val intent = Intent(mContext, FullScreenActivity::class.java)
-                val urls = tracks.tracks.map { it.url }
-                intent.putStringArrayListExtra("VIDEO_URLS", ArrayList(urls))
-                it.startActivity(intent)
-
-                play(tracks.tracks.first().mediaId)
-            }
+        currentPlaylist = playlist
+        mContext?.let {
+            val intent = Intent(mContext, FullScreenActivity::class.java)
+            intent.putParcelableArrayListExtra("VIDEO_ITEMS", ArrayList(playlist))
+            it.startActivity(intent)
         }
     }
 
-    fun pause() {
-        player.playWhenReady = false
-        player.pause()
+    fun pause(value:Boolean) {
+        if(value) {
+            // pause
+            player.pause()
+            player.playWhenReady = false
+        } else {
+            // resume
+            player.play()
+        }
     }
 
     fun play(mediaId: String) {
-        currentMetadata?.tracks?.indexOfFirst { item -> mediaId == item.mediaId }?.takeIf { it != -1 }?.let {
+        currentPlaylist.indexOfFirst { item -> mediaId == item.id }.takeIf { it != -1 }?.let {
             val index = player.currentMediaItemIndex
             if (index != it) player.seekTo(it, C.TIME_UNSET)
             player.playWhenReady = true
@@ -80,7 +70,6 @@ class PlayerViewModel(application: Application, val player: ExoPlayer) : Android
     fun stop() {
         player.stop()
         player.release()
-        _stopEvent.postValue(true)
     }
 
     fun mute(mute: Boolean) {
@@ -106,7 +95,7 @@ class PlayerViewModel(application: Application, val player: ExoPlayer) : Android
 
     fun status(): DeviceStatusDTO {
         val index = player.currentMediaItemIndex
-        val item = currentMetadata?.tracks?.getOrNull(index)
+        val item = currentPlaylist.getOrNull(index)
         return if (item != null) {
             val isPlaying = player.isPlaying
             val isBuffering = isBuffering()
@@ -118,7 +107,7 @@ class PlayerViewModel(application: Application, val player: ExoPlayer) : Android
                 isPaused -> StatusType.PAUSED
                 else -> StatusType.ENDED
             }
-            DeviceStatusDTO(item.mediaId, status, position)
+            DeviceStatusDTO(item.id, status, position)
         } else {
             DeviceStatusDTO("1", StatusType.ENDED, 0.0f)
         }
@@ -130,42 +119,6 @@ class PlayerViewModel(application: Application, val player: ExoPlayer) : Android
 
     private fun isPaused() = player.run {
         playbackState == Player.STATE_READY && !playWhenReady
-    }
-
-    private fun buildMetadata(list: List<PlaylistItemDTO>) : PlayMetadata {
-        val tracks = list.map {
-            val ismhm = it.metadata.format == "SONY"
-
-            ACTrackSource(
-                -1,
-                it.id,
-                it.id,
-                TrackSourceType.External,
-                it.url,
-                -1,null,it.metadata.title,
-                "",it.duration.durationToTime().toDouble(), it.type.contentEquals("VIDEO", ignoreCase = true),
-                legacyUrl = false, isRAtype = it.metadata.format == "SONY",
-                isAuroType = it.metadata.format == "AURO", isMHM1Format = ismhm, isMHA1Format = !ismhm,
-                false, false,null, false, false,
-                artworkUrl = if( it.metadata.artworkUrl != null) Uri.parse(it.metadata.artworkUrl) else Uri.EMPTY
-            )
-        }
-
-        return PlayMetadata(
-            Uri.EMPTY,
-            "",
-            "",
-            -1,
-            null,
-            null,
-            "",
-            -1,
-            tracks = tracks
-        )
-    }
-
-    private fun prepareMetadata(metadata: PlayMetadata?) {
-        currentMetadata = metadata
     }
 
     fun setupWith(context: Context) {

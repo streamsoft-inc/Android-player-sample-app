@@ -1,33 +1,33 @@
 package com.example.playersampleapp.activity
 
 import android.content.res.Configuration
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
-import android.util.Log
 import android.view.WindowInsets
 import android.view.WindowInsetsController
 import android.widget.Toast
 import androidx.annotation.OptIn
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
+import androidx.media3.common.C
 import androidx.media3.common.MediaItem
+import androidx.media3.common.MediaMetadata
 import androidx.media3.common.util.UnstableApi
+import androidx.media3.common.util.Util
 import androidx.media3.datasource.DefaultHttpDataSource
 import androidx.media3.exoplayer.dash.DashMediaSource
 import androidx.media3.exoplayer.hls.HlsMediaSource
-import androidx.media3.exoplayer.source.ConcatenatingMediaSource
 import androidx.media3.exoplayer.source.MediaSource
 import androidx.media3.exoplayer.source.ProgressiveMediaSource
 import androidx.media3.ui.PlayerView
 import com.example.playersampleapp.R
+import com.example.playersampleapp.server.model.PlaylistItemDTO
 import com.example.playersampleapp.viewModel.PlayerViewModel
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
 
 class FullScreenActivity : AppCompatActivity() {
-    companion object {
-        val ACTION_CLOSE_ACTIVITY: String = "com.yourapp.ACTION_CLOSE_ACTIVITY"
-    }
 
     private lateinit var playerView: PlayerView
     private val playerViewModel: PlayerViewModel by viewModel()
@@ -37,33 +37,19 @@ class FullScreenActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_full_screen)
-
-        //todo observer
-
         hideStatusBar()
 
         playerView = findViewById(R.id.playerView)
 
-        val videoUrl = intent.getStringExtra("VIDEO_URL") ?: ""
-        val videoUrls = intent.getStringArrayListExtra("VIDEO_URLS") ?: arrayListOf()
+        val items: ArrayList<PlaylistItemDTO>? = intent.getParcelableArrayListExtra("VIDEO_ITEMS")
 
         playerViewModel.player.stop()
         playerViewModel.player.clearMediaItems()
 
-        when {
-            videoUrls.isNotEmpty() -> {
-                val mediaSource = createMediaSources(videoUrls)
-                playerViewModel.player.setMediaSource(mediaSource)
-                playerViewModel.player.prepare()
-            }
-            videoUrl.isNotBlank() -> {
-                val mediaSource = createMediaSource(videoUrl)
-                playerViewModel.player.setMediaSource(mediaSource)
-                playerViewModel.player.prepare()
-            }
-            else -> {
-                Toast.makeText(this, "No videos to play", Toast.LENGTH_SHORT).show()
-            }
+        items?.let {
+            val mediaSources: List<MediaSource> = createMediaSources(it)
+            playerViewModel.player.setMediaSources(mediaSources)
+            playerViewModel.player.prepare()
         }
 
         playerView.player = playerViewModel.player
@@ -72,42 +58,34 @@ class FullScreenActivity : AppCompatActivity() {
     }
 
     @OptIn(UnstableApi::class)
-    private fun createMediaSource(url: String): MediaSource {
-        val mediaItem = MediaItem.fromUri(url)
+    fun createMediaSources(playlist: List<PlaylistItemDTO>): List<MediaSource> {
         val dataSourceFactory = DefaultHttpDataSource.Factory()
 
-        return when {
-            url.endsWith(".mp4") -> ProgressiveMediaSource.Factory(dataSourceFactory).createMediaSource(mediaItem)
-            url.endsWith(".m3u8") -> HlsMediaSource.Factory(dataSourceFactory).createMediaSource(mediaItem)
-            url.endsWith(".mpd") -> DashMediaSource.Factory(dataSourceFactory).createMediaSource(mediaItem)
-            else -> throw IllegalArgumentException("Unsupported video format")
-        }
-    }
+        return playlist.map { item ->
+            val mediaItem = MediaItem.Builder()
+                .setUri(item.url)
+                .setMediaMetadata(
+                    MediaMetadata.Builder()
+                        .setTitle(item.metadata.title)
+                        .setArtist(item.metadata.artistName)
+                        .setAlbumTitle(item.metadata.albumName)
+                        .setArtworkUri(item.metadata.artworkUrl?.let { Uri.parse(it) })
+                        .build()
+                )
+                .setTag(item) // You can keep the full DTO for later reference
+                .build()
 
-    @OptIn(UnstableApi::class)
-    private fun createMediaSources(urls: List<String>): MediaSource {
-        val dataSourceFactory = DefaultHttpDataSource.Factory()
+            val type = Util.inferContentType(Uri.parse(item.url))
 
-        val mediaSources = urls.map { url ->
-            val mediaItem = MediaItem.fromUri(url)
-
-            when {
-                url.endsWith(".mp4") -> {
-                    ProgressiveMediaSource.Factory(dataSourceFactory).createMediaSource(mediaItem)
-                }
-                url.endsWith(".m3u8") -> {
-                    HlsMediaSource.Factory(dataSourceFactory).createMediaSource(mediaItem)
-                }
-                url.endsWith(".mpd") -> {
-                    DashMediaSource.Factory(dataSourceFactory).createMediaSource(mediaItem)
-                }
-                else -> throw IllegalArgumentException("Unsupported video format")
+            when (type) {
+                C.CONTENT_TYPE_DASH -> DashMediaSource.Factory(dataSourceFactory).createMediaSource(mediaItem)
+                C.CONTENT_TYPE_HLS -> HlsMediaSource.Factory(dataSourceFactory).createMediaSource(mediaItem)
+                C.CONTENT_TYPE_OTHER -> ProgressiveMediaSource.Factory(dataSourceFactory).createMediaSource(mediaItem)
+                else -> throw IllegalStateException("Unsupported media type: ${item.url}")
             }
         }
-
-        // Create ConcatenatingMediaSource using the new API (media3)
-        return ConcatenatingMediaSource(*mediaSources.toTypedArray())
     }
+
 
     override fun onStop() {
         super.onStop()

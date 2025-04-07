@@ -1,13 +1,13 @@
 package com.example.playersampleapp.server.model
 
-import com.example.playersampleapp.server.ACTrackSource
+import android.os.Parcelable
+import kotlinx.parcelize.Parcelize
 import kotlinx.serialization.Serializable
-import java.io.File
 
 sealed class MediaCommands(var hasBody: Boolean = false) {
     class Load(var playlist: List<PlaylistItemDTO> = emptyList()): MediaCommands(true)
     class Play(var play: PlayDTO): MediaCommands(hasBody = true)
-    object Pause: MediaCommands()
+    class Pause(var value:Boolean = true): MediaCommands()
     object Next: MediaCommands()
     object Previous: MediaCommands()
     object Stop: MediaCommands()
@@ -17,13 +17,6 @@ sealed class MediaCommands(var hasBody: Boolean = false) {
     class Connect(var connectDTO: ConnectDTO): MediaCommands()
     class Disconnect(): MediaCommands()
 }
-
-
-class PlayerConfig(
-    val playerHost: String,
-    val playerPort: String,
-    val playerAPIConfig: PlayerAPIEndpoint = basePlayerAPIEndpoint
-)
 
 class PlayerAPIEndpoint(
     val load: String,
@@ -47,7 +40,7 @@ val basePlayerAPIEndpoint = PlayerAPIEndpoint(
     pause = "/media/pause",
     next = "/media/next",
     previous = "/media/previous",
-    seek = "/media/move",
+    seek = "/media/seek",
     stop = "/media/stop",
     capabilities = "/device/capabilities",
     status = "/media/status",
@@ -73,21 +66,38 @@ class VolumeDTO(val value: Float)
 class ConnectDTO(val name: String, val version: String)
 
 @Serializable
-class PlaylistItemDTO(
+@Parcelize
+data class PlaylistItemDTO(
     val id: String,
     val url: String,
     val type: String,
     val duration: String,
     val metadata: MetadataDTO
-)
+) : Parcelable
 
 @Serializable
-class MetadataDTO(
+@Parcelize
+data class MetadataDTO(
     val title: String,
     val artistName: String,
     val albumName: String,
     val artworkUrl: String? = null,
     val format: String
+) : Parcelable
+
+@Serializable
+class DeviceConnectDTO(
+    var name:String,
+    var version:String
+)
+@Serializable
+class DeviceCapabilitiesDTO(
+    val volume: Boolean,
+    val video: Boolean,
+    val stream: Array<String> = arrayOf("mpegh-dash", "hls"),
+    val format: Array<String> = arrayOf("AURO-CODEC", "AURO-CX", "OTHER"),
+    val device: String = "speaker",
+    val channel: Array<String> = arrayOf("1", "2", "5.1", "7.1.4", "9.1.6")
 )
 
 @Serializable
@@ -103,41 +113,6 @@ class ErrorResponceDTO(
     val code: Int?
 )
 
-
-class PlayerStatusDTO(
-    var status: PlayerInfoStatus,
-    val deviceStatusDTO: DeviceStatusDTO?
-)
-
-enum class PlayerInfoStatus {
-    CONNECTED, DISCONNECTED, MEDIA_LOADED, STOPPED, IDLE, ERROR
-}
-
 enum class StatusType {
     PLAYING, PAUSED, BUFFERING, ENDED
-}
-
-data class PlaybackCloudConfig(
-    val playbackEndpoint: String,
-    val downloadEndpoint: String
-)
-
-data class FileDownloaderConfig(
-    val numOfParallelDownloads: Int = 1,
-    val downloadDirectory: File
-)
-
-data class PlayerTrackEvent(
-    val track: ACTrackSource,
-    val inProgress: Boolean,
-    val playlistIndex: Int,
-    var playbackEventType: PlaybackEventType
-)
-
-enum class PlaybackEventType {
-    LOAD,
-    START,
-    PLAY,
-    PAUSE,
-    END
 }

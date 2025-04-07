@@ -9,6 +9,9 @@ plugins {
 android {
     namespace = "com.example.playersampleapp"
     compileSdk = 35
+    buildFeatures {
+        buildConfig = true
+    }
 
     defaultConfig {
         applicationId = "com.example.playersampleapp"
@@ -18,6 +21,10 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        buildConfigField("String", "APP_BUILD_CODE", "\"$versionCode\"")
+        buildConfigField("String", "APP_NAME", "\"ACConnect Sample APP\"")
+        buildConfigField("String", "SERVICE_NAME", "\"ACConnect Sample APP Service\"")
     }
 
     buildTypes {
@@ -61,14 +68,19 @@ dependencies {
     implementation(libs.androidx.media3.exoplayer.hls)
     implementation(libs.androidx.media3.exoplayer.dash)
     implementation(libs.androidx.media3.exoplayer.smoothstreaming)
+    implementation(libs.androidx.media3.common)
+    implementation(libs.androidx.media3.container)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
 
     //exo
-    implementation("androidx.media3:media3-exoplayer:1.3.1")
-    implementation("androidx.media3:media3-ui:1.3.1")
-    implementation("androidx.media3:media3-extractor:1.2.0")
+    implementation(libs.androidx.media3.exoplayer)
+    implementation(libs.androidx.media3.exoplayer.dash)
+    implementation(libs.androidx.media3.exoplayer.hls)
+    implementation(libs.androidx.media3.datasource)
+    implementation(libs.androidx.media3.ui)
+    implementation(libs.androidx.media3.extractor)
 
     //json
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0")
@@ -86,14 +98,6 @@ dependencies {
 
     //koin
     implementation ("io.insert-koin:koin-android:3.5.0")
-
-    //room
-    implementation("androidx.room:room-runtime:2.6.1")
-    kapt("androidx.room:room-compiler:2.6.1")
-
-    //rx
-    implementation("io.reactivex.rxjava2:rxjava:2.2.21")
-    implementation("io.reactivex.rxjava2:rxandroid:2.1.1")
 
     implementation("androidx.legacy:legacy-support-v4:1.0.0")
 }

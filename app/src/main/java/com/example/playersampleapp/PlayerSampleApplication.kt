@@ -10,7 +10,7 @@ class PlayerSampleApplication : Application() {
         super.onCreate()
         startKoin {
             androidContext(this@PlayerSampleApplication)
-            modules(appModule(this@PlayerSampleApplication, defaultDownloaderConfig(applicationContext)))
+            modules(appModule(this@PlayerSampleApplication))
         }
     }
 

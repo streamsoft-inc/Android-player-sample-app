@@ -2,13 +2,17 @@ package com.example.playersampleapp.server
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.os.Build
+import android.os.Handler
+import android.os.Looper
 import android.widget.Toast
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.media3.datasource.cache.Cache
+import com.example.playersampleapp.BuildConfig
+import com.example.playersampleapp.server.model.DeviceConnectDTO
 import com.example.playersampleapp.server.model.DeviceStatusDTO
 import com.example.playersampleapp.server.model.MediaCommands
-import com.example.playersampleapp.shared.MainThreadDispatcher
 import com.example.playersampleapp.viewModel.PlayerViewModel
 
 class ConnectController(
@@ -59,7 +63,7 @@ class ConnectController(
                 }
                 is MediaCommands.Pause -> {
                     println("[ACC] pause")
-                    viewModel.pause()
+                    viewModel.pause(command.value)
                 }
                 is MediaCommands.Play -> {
                     println("[ACC] play")
@@ -114,10 +118,26 @@ class ConnectController(
             mediaHttpServer.callback = mediaServerCallback
             mediaHttpServer.requestCallbackChannel = object : RequestCallbackChannel {
                 override fun status(): DeviceStatusDTO? {
-                    MainThreadDispatcher.post {
+                    Handler(Looper.getMainLooper()).post  {
                         readStatus()
                     }
                     return lastStatus
+                }
+
+                override fun device() : DeviceConnectDTO? {
+                    val name = BuildConfig.SERVICE_NAME
+                        .plus( "-")
+                        .plus( Build.MANUFACTURER)
+                        .plus(" ")
+                        .plus(Build.MODEL)
+                        .plus(" v")
+                        .plus(Build.VERSION.RELEASE)
+
+                    val version = BuildConfig.VERSION_NAME
+                        .plus(" v")
+                        .plus(BuildConfig.APP_BUILD_CODE)
+
+                    return DeviceConnectDTO(name, version )
                 }
             }
             mediaHttpServer.start()
