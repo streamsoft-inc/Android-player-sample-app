@@ -18,7 +18,7 @@ class NSDController {
         class UnregisterFailed(val serviceInfo: NsdServiceInfo?, errorCode: Int): ServiceRegisterStatus()
     }
 
-    private val acService = "_artist_connection._tcp"
+    private val acService = "_acconnect_streaming._tcp"
     private var manager : NsdManager? = null
 
     var status : ServiceStatusListener = {}
