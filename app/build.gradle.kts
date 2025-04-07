@@ -1,9 +1,10 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.jetbrains.kotlin.android)
-    kotlin("plugin.serialization") version "1.8.0"
+    kotlin("plugin.serialization")
     id("kotlin-parcelize")
     kotlin("kapt")
+    id("com.google.devtools.ksp")
 }
 
 android {
@@ -86,14 +87,6 @@ dependencies {
 
     //koin
     implementation ("io.insert-koin:koin-android:3.5.0")
-
-    //room
-    implementation("androidx.room:room-runtime:2.6.1")
-    kapt("androidx.room:room-compiler:2.6.1")
-
-    //rx
-    implementation("io.reactivex.rxjava2:rxjava:2.2.21")
-    implementation("io.reactivex.rxjava2:rxandroid:2.1.1")
 
     implementation("androidx.legacy:legacy-support-v4:1.0.0")
 }

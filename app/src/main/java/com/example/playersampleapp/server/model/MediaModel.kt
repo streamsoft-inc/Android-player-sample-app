@@ -1,6 +1,5 @@
 package com.example.playersampleapp.server.model
 
-import com.example.playersampleapp.server.ACTrackSource
 import kotlinx.serialization.Serializable
 import java.io.File
 
@@ -17,13 +16,6 @@ sealed class MediaCommands(var hasBody: Boolean = false) {
     class Connect(var connectDTO: ConnectDTO): MediaCommands()
     class Disconnect(): MediaCommands()
 }
-
-
-class PlayerConfig(
-    val playerHost: String,
-    val playerPort: String,
-    val playerAPIConfig: PlayerAPIEndpoint = basePlayerAPIEndpoint
-)
 
 class PlayerAPIEndpoint(
     val load: String,
@@ -104,40 +96,11 @@ class ErrorResponceDTO(
 )
 
 
-class PlayerStatusDTO(
-    var status: PlayerInfoStatus,
-    val deviceStatusDTO: DeviceStatusDTO?
-)
-
-enum class PlayerInfoStatus {
-    CONNECTED, DISCONNECTED, MEDIA_LOADED, STOPPED, IDLE, ERROR
-}
-
 enum class StatusType {
     PLAYING, PAUSED, BUFFERING, ENDED
 }
-
-data class PlaybackCloudConfig(
-    val playbackEndpoint: String,
-    val downloadEndpoint: String
-)
 
 data class FileDownloaderConfig(
     val numOfParallelDownloads: Int = 1,
     val downloadDirectory: File
 )
-
-data class PlayerTrackEvent(
-    val track: ACTrackSource,
-    val inProgress: Boolean,
-    val playlistIndex: Int,
-    var playbackEventType: PlaybackEventType
-)
-
-enum class PlaybackEventType {
-    LOAD,
-    START,
-    PLAY,
-    PAUSE,
-    END
-}

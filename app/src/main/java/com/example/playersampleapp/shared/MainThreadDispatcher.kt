@@ -10,8 +10,4 @@ object MainThreadDispatcher {
     fun post(command: Runnable) {
         handler.post(command)
     }
-
-    fun postDelayed(command: Runnable, delay: Long) {
-        handler.postDelayed(command, delay)
-    }
 }
